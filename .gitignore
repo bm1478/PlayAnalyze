@@ -129,3 +129,6 @@ dmypy.json
 .pyre/
 
 .idea
+/chat_data
+/font
+/word_cloud_img
