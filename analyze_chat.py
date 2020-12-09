@@ -1,11 +1,13 @@
 from wordcloud import WordCloud
 from konlpy.tag import Okt
 from collections import Counter
-import matplotlib.pyplot as plt
+from matplotlib import pyplot as plt, font_manager, rc
 import re
 import pandas as pd
 import datetime
 import os
+font_name = font_manager.FontProperties(fname='./font/NanumGothic.ttf').get_name()
+rc('font', family=font_name)
 
 
 def preprocess_for_message(data):
@@ -48,7 +50,7 @@ def preprocess_for_message(data):
     return df
 
 
-def make_cloud(word_count, chat_name, chat_data):
+def make_count(chat_data):
     okt = Okt()
 
     # 형태소 분석
@@ -61,24 +63,45 @@ def make_cloud(word_count, chat_name, chat_data):
     noun_adj_list = []
     for one_sentence in sentences_tag:
         for word, tag in one_sentence:
-            if tag in ['Noun', 'Adjective'] and ("내" not in word) and \
+            if tag in ['Noun', 'Adjective'] and \
+                    ("내" not in word) and ("거" not in word) and\
                     ("너" not in word) and ("나" not in word) and \
-                    ("수" not in word):
+                    ("수" not in word) and ("뭐" not in word) and ("것" not in word):
                 noun_adj_list.append(word)
 
     # 형태소별 count
     counts = Counter(noun_adj_list)
-    # default 50
-    tags = counts.most_common(word_count)
+    return counts
 
+
+def save_img(fig, dir_name, chat_name):
+    save_path = os.path.join(os.path.abspath(__file__), '../' + dir_name)
+    file_name = chat_name + '.png'
+    fig.savefig(os.path.join(save_path, file_name))
+
+
+def make_word_count_bar(chat_name, counts):
+    tags = counts.most_common(10)
+    chat_dict = dict(tags)
+    chat_y = list(chat_dict.keys())
+    chat_x = list(chat_dict.values())
+    fig = plt.figure(figsize=(10, 8))
+    plt.barh(chat_y, chat_x)
+    for idx, value in enumerate(chat_x):
+        plt.text(value, idx, str(value))
+    plt.show()
+    save_img(fig, 'word_count_bar', chat_name)
+
+
+def make_cloud(word_count, chat_name, counts):
+    tags = counts.most_common(word_count)
+    chat_dict = dict(tags)
     # word cloud 생성
     wc = WordCloud(font_path='./font/NanumGothic.ttf', background_color='black', colormap='Accent_r', width=800,
                    height=600)
-    cloud = wc.generate_from_frequencies(dict(tags))
+    cloud = wc.generate_from_frequencies(chat_dict)
     fig = plt.figure(figsize=(10, 8))
     plt.axis('off')
     plt.imshow(cloud)
     plt.show()
-    save_path = os.path.join(os.path.abspath(__file__), '../word_cloud_img')
-    file_name = chat_name + '.png'
-    fig.savefig(os.path.join(save_path, file_name))
+    save_img(fig, 'word_cloud_img', chat_name)

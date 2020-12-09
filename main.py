@@ -1,5 +1,6 @@
 import os
-from make_word_cloud import preprocess_for_message, make_cloud
+from analyze_chat import preprocess_for_message, make_count, \
+    make_word_count_bar, make_cloud
 
 
 def load_chats():
@@ -29,5 +30,6 @@ if __name__ == '__main__':
     for one_data in chat_data:
         print(one_data['title'])
         extract_info = preprocess_for_message(one_data['data'])
-        # 50개 word count
-        word_cloud = make_cloud(50, one_data['title'], extract_info['content'])
+        chat_counts = make_count(extract_info['content'])
+        make_word_count_bar(one_data['title'], chat_counts)
+        word_cloud = make_cloud(50, one_data['title'], chat_counts)
